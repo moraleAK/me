@@ -17,5 +17,33 @@
   </dependencies>
   <build>
     <finalName>bidding</finalName>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.1</version>
+        <configuration>
+          <source>1.7</source>
+          <target>1.7</target>
+          <encoding>UTF8</encoding>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.eclipse.jetty</groupId>
+        <artifactId>jetty-maven-plugin</artifactId>
+        <version>9.2.5.v20141112</version>
+        <configuration>
+          <stopKey>STOP!!</stopKey>
+          <stopPort>9095</stopPort>
+          <daemon>true</daemon>
+          <httpConnector>
+            <port>8002</port>
+          </httpConnector>
+          <webApp>
+            <contextPath>/</contextPath>
+          </webApp>
+        </configuration>
+      </plugin>
+    </plugins>
   </build>
 </project>
