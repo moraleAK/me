@@ -1,17 +1,17 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>akgcc</groupId>
-  <artifactId>bidding</artifactId>
+  <groupId>com.el</groupId>
+  <artifactId>financial_system</artifactId>
   <packaging>war</packaging>
   <version>1.0-SNAPSHOT</version>
-  <name>bidding Maven Webapp</name>
+  <name>financial_system</name>
   <url>http://maven.apache.org</url>
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>3.8.1</version>
+      <version>4.10</version>
       <scope>test</scope>
     </dependency>
     <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
@@ -26,10 +26,20 @@
       <artifactId>hibernate-core</artifactId>
       <version>5.2.9.Final</version>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.9</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>apache-log4j-extras</artifactId>
+      <version>1.2.17</version>
+    </dependency>
 
   </dependencies>
   <build>
-    <finalName>bidding</finalName>
+    <finalName>financial_system</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
