@@ -52,7 +52,6 @@ public class ReflectTest {
         Class<?> clazz = Class.forName("com.el.ReflectTest");
         LOG.info("classLoader:{}",clazz.getClassLoader());
         LOG.info("clazz:{}",clazz.getName());
-
     }
 
 }
