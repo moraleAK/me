@@ -39,6 +39,7 @@ public class ReflectTest {
             //调用函数
             LOG.info("method:{}",method);
             LOG.info("methodName:{}",method.getName().startsWith("get"));
+
             if(method.getName().startsWith("set")){
                 LOG.info("setValue:{}",method.invoke(userTO,"hhhhhhhhhhhhhh"));
             }
