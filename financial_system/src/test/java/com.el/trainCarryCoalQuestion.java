@@ -12,6 +12,14 @@ public class trainCarryCoalQuestion {
      * 1.煤的总质量为火车载重的整数倍
      * 2.到达终点时，煤的总质量小于等于火车的载重
      */
+
+    /**
+     * 问题抽象，即单位为L的容器初始容量为 nL ，每走一单位消耗L 最多能走多远！
+     * f(1) = 1;
+     * f(2) = 1/3 + 1;
+     * f(3) = 1/3 + 1/5 +1;
+     * f(n) = f(n-1) + 1/(2n-1)
+     */
     @Test
     public void transportCoalTest() {
         double totalCoal = 30000;
@@ -48,5 +56,19 @@ public class trainCarryCoalQuestion {
     public void castTest() {
         double x = (int) 2.14;
         System.out.println(x);
+    }
+
+    @Test
+    public void EloRatingSystem(){
+        double x = 1000;
+        double y = 1750;
+        double z = 10;
+        for(int i= 0; i< 100;i++) {
+            z+=10;
+            double sa = z / 400;
+            double sb = (y - x) / z;
+            double s1 = 1 / (1 + Math.pow(10, sa));
+            System.out.println("z=" + z + ",p=" + (1 - s1));
+        }
     }
 }

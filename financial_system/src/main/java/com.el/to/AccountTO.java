@@ -1,13 +1,13 @@
 package com.el.to;
 
 /**
- * Created by Ak_Guili on 2017/4/7.
+ * Created by Ak_Guili on 2017/5/9.
  */
-public class UserTO {
-    private String userName;
-    private String password;
-    private String address;
-    private String phoneNo;
+public class AccountTO {
+    String password;
+    String accountName;
+    String address;
+    String phoneNo;
 
     public String getAddress() {
         return address;
@@ -33,12 +33,11 @@ public class UserTO {
         this.password = password;
     }
 
-    public String getUserName() {
-
-        return userName;
+    public String getAccountName() {
+        return accountName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setAccountName(String accountName) {
+        this.accountName = accountName;
     }
 }
