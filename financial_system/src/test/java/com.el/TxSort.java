@@ -1,19 +1,13 @@
 package com.el;
 
-import com.el.to.AccountTO;
 import com.el.to.SubAccountTO;
-import com.el.util.DateUtils;
 import org.junit.Test;
-import org.springframework.beans.factory.support.ManagedMap;
 
-import java.io.Console;
-import java.lang.reflect.Array;
+import javax.management.AttributeList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
-
-import static java.lang.System.in;
 
 /**
  * Created by Ak_Guili on 2017/5/5.
@@ -140,35 +134,45 @@ public class TxSort {
     public void txSortTest() {
         // 账户初始赋值
         List<SubAccountTO> subList = new ArrayList<>();
-        String[] ss = {"A", "B", "C", "D", "E", "F"};
-        for (int i = 0; i < ss.length; i++) {
+        String[] accName = {"A", "B", "C", "D", "E", "F"};
+        for (int i = 0; i < accName.length; i++) {
             SubAccountTO sb = new SubAccountTO();
-            sb.setAccount(ss[i]);
+            sb.setAccount(accName[i]);
             sb.setAmount(0);
             sb.setRecordAmount(0);
             subList.add(sb);
         }
 
         //初始化订单
-        String[] s1 = {"A", "A", "A", "B", "C", "E", "D", "C", "E", "A", "B", "E", "C"};
-        String[] s2 = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
+        String[] fAccName = {"A", "A", "A", "B", "C", "E", "D", "C", "E", "A", "B", "E", "C"};
+        String[] tAccName = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
         long[] ll = {10, 10, 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 20};
         List<TxTO> txList = new ArrayList<>();
-        for (int i = 0; i < s1.length; i++) {
+        for (int i = 0; i < fAccName.length; i++) {
             TxTO to = new TxTO();
             to.setAmount(ll[i]);
             to.setId(i);
-            to.setFrom(s1[i]);
-            to.setTo(s2[i]);
+            to.setFrom(fAccName[i]);
+            to.setTo(tAccName[i]);
             txList.add(to);
+        }
+
+        System.out.println("初始订单：");
+
+        for (TxTO txTO : txList) {
+            System.out.println("id = " + txTO.getId() + ", amount = " + txTO.getAmount() + ", from = " + txTO.getFrom() + ", to = " + txTO.getTo());
         }
 
         //轧差
         offsetBalance(txList, subList);
+        System.out.println("***************************");
+        System.out.println("轧差各账户金额：");
+        for (SubAccountTO s : subList) {
+            System.out.println(s.getAccount() + " = " + s.getAmount());
+        }
 
         //补差
-        for (int i = 0; i < subList.size(); i++) {
-            SubAccountTO sb = subList.get(i);
+        for (SubAccountTO sb : subList) {
             if (sb.getAmount() > 0) {
                 sb.setAmount(0);
             }
@@ -177,10 +181,81 @@ public class TxSort {
                 sb.setAmount(sb.getAmount() - 2 * sb.getAmount());
             }
         }
-        System.out.println();
 
+        System.out.println("***************************");
+        System.out.println("补差后各账户：");
+
+        for (SubAccountTO s : subList) {
+            System.out.println(s.getAccount() + " = " + s.getAmount());
+        }
+
+        List<TxTO> sortTxList = new ArrayList<>();
+
+        System.out.println("***************************");
+        System.out.println("模拟交易开始：");
+        while (txList.size() > 0) {
+            //账户按照从大到小排序
+            List<SubAccountTO> sList = listCopy(subList);
+            List<SubAccountTO> tempSbList = accountSort(sList);
+            for (SubAccountTO sb : tempSbList) {
+                if (sb.getAmount() <= 0) {
+                    continue;
+                }
+                List<TxTO> tempTxList = txSort(txList, sb);
+                while (tempTxList.size() > 0) {
+                    for (TxTO tempTx : tempTxList) {
+                        if (tempTx.getAmount() > sb.getAmount()) {
+                            tempTxList.remove(tempTx);
+                            break;
+                        }
+                        sortTxList.add(tempTx);
+                        subList = updateAmount(subList, tempTx);
+                        System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo() + ", amount = " + tempTx.getAmount() + ", id = " + tempTx.getId());
+                        String allAmount = "";
+                        for (SubAccountTO sba : subList) {
+                            allAmount = allAmount + sba.getAccount() + "=" + sba.getAmount() + ",";
+                        }
+
+                        //System.out.println(allAmount);
+                        txList = removeTxTOItem(txList, tempTx);
+                        tempTxList.remove(tempTx);
+                        // System.out.println(txList.size());
+
+                        /*System.out.println("交易后订单：");
+                        for(TxTO txTO : txList){
+                            System.out.println("id="+txTO.getId() + ",amount" + txTO.getAmount() + ",from="+txTO.getFrom() + ",to=" + txTO.getTo());
+                        }
+                        System.out.println("***************************");*/
+                        break;
+                    }
+                }
+            }
+        }
+        /*System.out.println("交易顺序为：");
+        for (TxTO tx : sortTxList) {
+            System.out.println(tx.getId());
+        }*/
+        System.out.println("***************************");
+        System.out.println("模拟交易结束后金额：");
+        for (SubAccountTO s : subList) {
+            System.out.println(s.getAccount() +" : amount = "  + s.getAmount() + ", recordAmount = " +s.getRecordAmount());
+        }
     }
 
+    //todo 测试值是否会更新
+    public List<SubAccountTO> updateAmount(List<SubAccountTO> list, TxTO tx) {
+        for (SubAccountTO sb : list) {
+            if (sb.getAccount().equals(tx.getFrom())) {
+                sb.setAmount(sb.getAmount() - tx.getAmount());
+            }
+            if (sb.getAccount().equals(tx.getTo())) {
+                sb.setAmount(sb.getAmount() + tx.getAmount());
+            }
+        }
+        return list;
+    }
+
+    //轧差
     public void offsetBalance(List<TxTO> list, List<SubAccountTO> subList) {
         for (TxTO to : list) {
             for (SubAccountTO sb : subList) {
@@ -192,5 +267,79 @@ public class TxSort {
                 }
             }
         }
+    }
+
+    //账户从大到小排序
+    public List<SubAccountTO> accountSort(List<SubAccountTO> list) {
+        List<SubAccountTO> newList = new ArrayList<>();
+        int len = list.size();
+        if (len > 0)   //查看数组是否为空
+        {
+            for (int i = 0; i < len; i++) {
+                SubAccountTO sba = list.get(0);
+                for (SubAccountTO sa : list) {
+                    if (sba.getAmount() < sa.getAmount()) {
+                        sba = sa;
+                    }
+                }
+                newList.add(sba);
+                list.remove(sba);
+            }
+        }
+
+        return newList;
+    }
+
+    //单个用户相关订单（from） 从大到小排序
+    public List<TxTO> txAscSort(List<TxTO> list) {
+        List<TxTO> newList = new ArrayList<>();
+        int len = list.size();
+        if (len > 0)   //查看数组是否为空
+        {
+            for (int i = 0; i < len; i++) {
+                TxTO to = list.get(0);
+                for (TxTO tx : list) {
+                    if (to.getAmount() < tx.getAmount()) {
+                        to = tx;
+                    }
+                }
+                newList.add(to);
+                list.remove(to);
+            }
+        }
+
+        return newList;
+    }
+
+    //某个用户订单相关排序
+    public List<TxTO> txSort(List<TxTO> txList, SubAccountTO sb) {
+        List<TxTO> newList = new ArrayList<>();
+        for (TxTO tx : txList) {
+            if (sb.getAccount().equals(tx.getFrom())) {
+                newList.add(tx);
+                //txList.remove(tx);
+            }
+        }
+        return txAscSort(newList);
+    }
+
+    //数组复制
+    public <T> List<T> listCopy(List<T> oldList) {
+        List<T> newList = new ArrayList<>();
+        for (T t : oldList) {
+            newList.add(t);
+        }
+        return newList;
+    }
+
+    //移除某个ID Tx
+    public static List<TxTO> removeTxTOItem(List<TxTO> list, TxTO tx) {
+        for (TxTO txTO : list) {
+            if (txTO.getId() == tx.getId()) {
+                list.remove(txTO);
+                break;
+            }
+        }
+        return list;
     }
 }
