@@ -292,9 +292,7 @@ public class TxSort {
     }
 
     public TxTO getMinTx(List<TxTO> list) {
-        // List<TxTO> newList = new ArrayList<>();
-        int len = list.size();
-        if (len > 0)   //查看数组是否为空
+        if (list.size() > 0)   //查看数组是否为空
         {
             TxTO to = list.get(0);
             for (TxTO tx : list) {
@@ -327,24 +325,35 @@ public class TxSort {
                 newList.add(tx);
             }
         }
+        if (newList.size() == 0) {
+            return 0;
+        }
         return getMinTx(newList).getAmount() - sb.getAmount();
     }
 
+    //获取最小补差账户
     public SubAccountTO getMinSubAccount(List<SubAccountTO> subList, List<TxTO> txList) {
         List<SubAccountTO> tempSbList = listCopy(subList);
         for (SubAccountTO sb : tempSbList) {
             sb.setMinAmount(getMinAmount(txList, sb));
+            //System.out.println(getMinAmount(txList,sb));
         }
         return getMinSub(tempSbList);
     }
 
     public SubAccountTO getMinSub(List<SubAccountTO> list) {
-        SubAccountTO sb = list.get(0);
+        SubAccountTO sb = new SubAccountTO();
         for (SubAccountTO s : list) {
-            if (s.getMinAmount() < sb.getMinAmount()) {
+            if (s.getMinAmount() > 0) {
                 sb = s;
             }
         }
+        for (SubAccountTO s : list) {
+            if (s.getMinAmount() > 0 && s.getMinAmount() < sb.getMinAmount()) {
+                sb = s;
+            }
+        }
+        //System.out.println(sb.getMinAmount());
         return sb;
     }
 
@@ -386,28 +395,29 @@ public class TxSort {
                     }
                     sortTxList.add(tempTx);
                     subList = updateAmount(subList, tempTx);
-                    System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo() + ", amount = " + tempTx.getAmount() + ", id = " + tempTx.getId());
+                    System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo()
+                            + ", amount = " + tempTx.getAmount() + ", id = " + tempTx.getId());
                     String allAmount = "";
                     for (SubAccountTO sba : subList) {
-                        allAmount = allAmount + sba.getAccount() + "=" + sba.getAmount() + ",";
+                        allAmount = allAmount + sba.getAccount() + " = " + sba.getAmount() + ",";
                     }
 
                     //System.out.println(allAmount);
                     txList = removeTxTOItem(txList, tempTx);
                     tempTxList.remove(tempTx);
-                    // System.out.println(txList.size());
 
-                        /*System.out.println("交易后订单：");
-                        for(TxTO txTO : txList){
-                            System.out.println("id="+txTO.getId() + ",amount" + txTO.getAmount() + ",from="+txTO.getFrom() + ",to=" + txTO.getTo());
-                        }
-                        System.out.println("***************************");*/
+                    /*System.out.println(txList.size());
+                    System.out.println("交易后订单：");
+                    for (TxTO txTO : txList) {
+                        System.out.println("id=" + txTO.getId() + ",amount" + txTO.getAmount() + ",from=" + txTO.getFrom() + ",to=" + txTO.getTo());
+                    }
+                    System.out.println("***************************");*/
+
                     count++;
                     break;
                 }
             }
         }
-
         return count;
     }
 
