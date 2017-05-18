@@ -145,14 +145,14 @@ public class TxSort {
 
         //初始化订单
         //String[] fAccName = {"A", "A", "A", "B", "C", "E", "D", "C", "E", "A", "B", "E", "C"};
-       // String[] tAccName = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
+        // String[] tAccName = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
 
-         String[] fAccName = {"A", "B", "C", "D", "B"};
-         String[] tAccName = {"B", "C", "D", "A", "A"};
+        String[] fAccName = {"A", "B", "C", "D", "B", "B", "C"};
+        String[] tAccName = {"B", "C", "D", "A", "A", "C", "B"};
 
         //long[] ll = {10, 10, 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 20};
 
-        long[] ll = {10, 10, 20, 10, 5};
+        long[] ll = {10, 10, 20, 10, 5, 50, 50};
         List<TxTO> txList = new ArrayList<>();
         for (int i = 0; i < fAccName.length; i++) {
             TxTO to = new TxTO();
@@ -192,7 +192,7 @@ public class TxSort {
         System.out.println("补差后各账户：");
 
         for (SubAccountTO s : subList) {
-            System.out.println(s.getAccount() + " = " + s.getAmount());
+            System.out.println(s.getAccount() + " : amount = " + s.getAmount() + ", recordAmount = " + s.getRecordAmount());
         }
 
         System.out.println("***************************");
@@ -201,10 +201,10 @@ public class TxSort {
             long count = simulateTx(subList, txList);
             if (count == 0) {
                 System.out.println("出现死循环，剩余订单数为：" + txList.size());
-                SubAccountTO minSub = getMinSubAccount(subList,txList);
-                System.out.println("最小补差：account = " + minSub.getAmount() + ", amount = " + minSub.getMinAmount());
-                for(SubAccountTO sb : subList){
-                    if(sb.getAccount().equals(minSub.getAccount())){
+                SubAccountTO minSub = getMinSubAccount(subList, txList);
+                System.out.println("最小补差：account = " + minSub.getAccount() + ", amount = " + minSub.getMinAmount());
+                for (SubAccountTO sb : subList) {
+                    if (sb.getAccount().equals(minSub.getAccount())) {
                         sb.setAmount(sb.getAmount() + minSub.getMinAmount());
                         sb.setRecordAmount(sb.getRecordAmount() + minSub.getMinAmount());
                     }
