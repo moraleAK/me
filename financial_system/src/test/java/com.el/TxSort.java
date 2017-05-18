@@ -3,7 +3,6 @@ package com.el;
 import com.el.to.SubAccountTO;
 import org.junit.Test;
 
-import javax.management.AttributeList;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -134,7 +133,8 @@ public class TxSort {
     public void txSortTest() {
         // 账户初始赋值
         List<SubAccountTO> subList = new ArrayList<>();
-        String[] accName = {"A", "B", "C", "D", "E", "F"};
+        //String[] accName = {"A", "B", "C", "D", "E", "F"};
+        String[] accName = {"A", "B", "C", "D"};
         for (int i = 0; i < accName.length; i++) {
             SubAccountTO sb = new SubAccountTO();
             sb.setAccount(accName[i]);
@@ -144,9 +144,15 @@ public class TxSort {
         }
 
         //初始化订单
-        String[] fAccName = {"A", "A", "A", "B", "C", "E", "D", "C", "E", "A", "B", "E", "C"};
-        String[] tAccName = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
-        long[] ll = {10, 10, 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 20};
+        //String[] fAccName = {"A", "A", "A", "B", "C", "E", "D", "C", "E", "A", "B", "E", "C"};
+       // String[] tAccName = {"B", "C", "E", "E", "F", "C", "A", "B", "C", "B", "C", "B", "A"};
+
+         String[] fAccName = {"A", "B", "C", "D", "B"};
+         String[] tAccName = {"B", "C", "D", "A", "A"};
+
+        //long[] ll = {10, 10, 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 20};
+
+        long[] ll = {10, 10, 20, 10, 5};
         List<TxTO> txList = new ArrayList<>();
         for (int i = 0; i < fAccName.length; i++) {
             TxTO to = new TxTO();
@@ -189,44 +195,18 @@ public class TxSort {
             System.out.println(s.getAccount() + " = " + s.getAmount());
         }
 
-        List<TxTO> sortTxList = new ArrayList<>();
-
         System.out.println("***************************");
         System.out.println("模拟交易开始：");
         while (txList.size() > 0) {
-            //账户按照从大到小排序
-            List<SubAccountTO> sList = listCopy(subList);
-            List<SubAccountTO> tempSbList = accountSort(sList);
-            for (SubAccountTO sb : tempSbList) {
-                if (sb.getAmount() <= 0) {
-                    continue;
-                }
-                List<TxTO> tempTxList = txSort(txList, sb);
-                while (tempTxList.size() > 0) {
-                    for (TxTO tempTx : tempTxList) {
-                        if (tempTx.getAmount() > sb.getAmount()) {
-                            tempTxList.remove(tempTx);
-                            break;
-                        }
-                        sortTxList.add(tempTx);
-                        subList = updateAmount(subList, tempTx);
-                        System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo() + ", amount = " + tempTx.getAmount() + ", id = " + tempTx.getId());
-                        String allAmount = "";
-                        for (SubAccountTO sba : subList) {
-                            allAmount = allAmount + sba.getAccount() + "=" + sba.getAmount() + ",";
-                        }
-
-                        //System.out.println(allAmount);
-                        txList = removeTxTOItem(txList, tempTx);
-                        tempTxList.remove(tempTx);
-                        // System.out.println(txList.size());
-
-                        /*System.out.println("交易后订单：");
-                        for(TxTO txTO : txList){
-                            System.out.println("id="+txTO.getId() + ",amount" + txTO.getAmount() + ",from="+txTO.getFrom() + ",to=" + txTO.getTo());
-                        }
-                        System.out.println("***************************");*/
-                        break;
+            long count = simulateTx(subList, txList);
+            if (count == 0) {
+                System.out.println("出现死循环，剩余订单数为：" + txList.size());
+                SubAccountTO minSub = getMinSubAccount(subList,txList);
+                System.out.println("最小补差：account = " + minSub.getAmount() + ", amount = " + minSub.getMinAmount());
+                for(SubAccountTO sb : subList){
+                    if(sb.getAccount().equals(minSub.getAccount())){
+                        sb.setAmount(sb.getAmount() + minSub.getMinAmount());
+                        sb.setRecordAmount(sb.getRecordAmount() + minSub.getMinAmount());
                     }
                 }
             }
@@ -238,7 +218,7 @@ public class TxSort {
         System.out.println("***************************");
         System.out.println("模拟交易结束后金额：");
         for (SubAccountTO s : subList) {
-            System.out.println(s.getAccount() +" : amount = "  + s.getAmount() + ", recordAmount = " +s.getRecordAmount());
+            System.out.println(s.getAccount() + " : amount = " + s.getAmount() + ", recordAmount = " + s.getRecordAmount());
         }
     }
 
@@ -291,7 +271,7 @@ public class TxSort {
     }
 
     //单个用户相关订单（from） 从大到小排序
-    public List<TxTO> txAscSort(List<TxTO> list) {
+    public List<TxTO> txDesc(List<TxTO> list) {
         List<TxTO> newList = new ArrayList<>();
         int len = list.size();
         if (len > 0)   //查看数组是否为空
@@ -311,8 +291,24 @@ public class TxSort {
         return newList;
     }
 
-    //某个用户订单相关排序
-    public List<TxTO> txSort(List<TxTO> txList, SubAccountTO sb) {
+    public TxTO getMinTx(List<TxTO> list) {
+        // List<TxTO> newList = new ArrayList<>();
+        int len = list.size();
+        if (len > 0)   //查看数组是否为空
+        {
+            TxTO to = list.get(0);
+            for (TxTO tx : list) {
+                if (to.getAmount() > tx.getAmount()) {
+                    to = tx;
+                }
+            }
+            return to;
+        }
+        return new TxTO();
+    }
+
+    //某个用户订单相关排序(降序)
+    public List<TxTO> txDescSort(List<TxTO> txList, SubAccountTO sb) {
         List<TxTO> newList = new ArrayList<>();
         for (TxTO tx : txList) {
             if (sb.getAccount().equals(tx.getFrom())) {
@@ -320,7 +316,36 @@ public class TxSort {
                 //txList.remove(tx);
             }
         }
-        return txAscSort(newList);
+        return txDesc(newList);
+    }
+
+    //出现死循环时获取单用户最少补的钱数
+    public long getMinAmount(List<TxTO> txList, SubAccountTO sb) {
+        List<TxTO> newList = new ArrayList<>();
+        for (TxTO tx : txList) {
+            if (sb.getAccount().equals(tx.getFrom())) {
+                newList.add(tx);
+            }
+        }
+        return getMinTx(newList).getAmount() - sb.getAmount();
+    }
+
+    public SubAccountTO getMinSubAccount(List<SubAccountTO> subList, List<TxTO> txList) {
+        List<SubAccountTO> tempSbList = listCopy(subList);
+        for (SubAccountTO sb : tempSbList) {
+            sb.setMinAmount(getMinAmount(txList, sb));
+        }
+        return getMinSub(tempSbList);
+    }
+
+    public SubAccountTO getMinSub(List<SubAccountTO> list) {
+        SubAccountTO sb = list.get(0);
+        for (SubAccountTO s : list) {
+            if (s.getMinAmount() < sb.getMinAmount()) {
+                sb = s;
+            }
+        }
+        return sb;
     }
 
     //数组复制
@@ -342,4 +367,48 @@ public class TxSort {
         }
         return list;
     }
+
+    public long simulateTx(List<SubAccountTO> subList, List<TxTO> txList) {
+        long count = 0;
+        List<TxTO> sortTxList = new ArrayList<>();
+        List<SubAccountTO> sList = listCopy(subList);
+        List<SubAccountTO> tempSbList = accountSort(sList);
+        for (SubAccountTO sb : tempSbList) {
+            if (sb.getAmount() <= 0) {
+                continue;
+            }
+            List<TxTO> tempTxList = txDescSort(txList, sb);
+            while (tempTxList.size() > 0) {
+                for (TxTO tempTx : tempTxList) {
+                    if (tempTx.getAmount() > sb.getAmount()) {
+                        tempTxList.remove(tempTx);
+                        break;
+                    }
+                    sortTxList.add(tempTx);
+                    subList = updateAmount(subList, tempTx);
+                    System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo() + ", amount = " + tempTx.getAmount() + ", id = " + tempTx.getId());
+                    String allAmount = "";
+                    for (SubAccountTO sba : subList) {
+                        allAmount = allAmount + sba.getAccount() + "=" + sba.getAmount() + ",";
+                    }
+
+                    //System.out.println(allAmount);
+                    txList = removeTxTOItem(txList, tempTx);
+                    tempTxList.remove(tempTx);
+                    // System.out.println(txList.size());
+
+                        /*System.out.println("交易后订单：");
+                        for(TxTO txTO : txList){
+                            System.out.println("id="+txTO.getId() + ",amount" + txTO.getAmount() + ",from="+txTO.getFrom() + ",to=" + txTO.getTo());
+                        }
+                        System.out.println("***************************");*/
+                    count++;
+                    break;
+                }
+            }
+        }
+
+        return count;
+    }
+
 }

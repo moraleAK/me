@@ -7,6 +7,15 @@ public class SubAccountTO {
     private String account;
     private long amount;
     private long recordAmount;
+    private long minAmount;
+
+    public long getMinAmount() {
+        return minAmount;
+    }
+
+    public void setMinAmount(long minAmount) {
+        this.minAmount = minAmount;
+    }
 
     public long getRecordAmount() {
         return recordAmount;
