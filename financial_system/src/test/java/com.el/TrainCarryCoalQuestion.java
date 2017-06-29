@@ -5,7 +5,7 @@ import org.junit.Test;
 /**
  * Created by Ak_Guili on 2017/4/20.
  */
-public class trainCarryCoalQuestion {
+public class TrainCarryCoalQuestion {
     /**
      * 问题概述：
      * 此类问题应满足两个两个条件

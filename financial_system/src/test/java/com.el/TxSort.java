@@ -198,6 +198,7 @@ public class TxSort {
         System.out.println("***************************");
         System.out.println("模拟交易开始：");
         while (txList.size() > 0) {
+            //判断是否出现死循环
             long count = simulateTx(subList, txList);
             if (count == 0) {
                 System.out.println("出现死循环，剩余订单数为：" + txList.size());
@@ -291,6 +292,7 @@ public class TxSort {
         return newList;
     }
 
+    //获取最小订单
     public TxTO getMinTx(List<TxTO> list) {
         if (list.size() > 0)   //查看数组是否为空
         {
@@ -341,6 +343,7 @@ public class TxSort {
         return getMinSub(tempSbList);
     }
 
+    //获取死循环补钱最少账户
     public SubAccountTO getMinSub(List<SubAccountTO> list) {
         SubAccountTO sb = new SubAccountTO();
         for (SubAccountTO s : list) {
@@ -377,7 +380,9 @@ public class TxSort {
         return list;
     }
 
+    //模拟交易逻辑
     public long simulateTx(List<SubAccountTO> subList, List<TxTO> txList) {
+        //判断是否出现死循环
         long count = 0;
         List<TxTO> sortTxList = new ArrayList<>();
         List<SubAccountTO> sList = listCopy(subList);
@@ -393,6 +398,7 @@ public class TxSort {
                         tempTxList.remove(tempTx);
                         break;
                     }
+                    //添加 排序订单
                     sortTxList.add(tempTx);
                     subList = updateAmount(subList, tempTx);
                     System.out.println("from = " + tempTx.getFrom() + ", to = " + tempTx.getTo()
@@ -403,6 +409,7 @@ public class TxSort {
                     }
 
                     //System.out.println(allAmount);
+                    //移除已排序订单
                     txList = removeTxTOItem(txList, tempTx);
                     tempTxList.remove(tempTx);
 
